@@ -53,7 +53,7 @@ TIM_HandleTypeDef htim16;
 
 /* USER CODE BEGIN PV */
 // TODO: Define any input variables
-static uint8_t patterns[] = {};
+static uint8_t patterns[] = {10101010, 01010101, 11001100, 00110011, 11110000, 00001111};
 
 
 /* USER CODE END PV */
@@ -106,6 +106,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   // TODO: Start timer TIM16
+  HAL_TIM_Base_Start_IT(&htim16);
 
 
   // TODO: Write all "patterns" to EEPROM using SPI
