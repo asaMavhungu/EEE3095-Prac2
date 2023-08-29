@@ -50,12 +50,18 @@
 
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim16;
+static uint8_t patternIndex = 0;  // Index to keep track of the pattern
 
 /* USER CODE BEGIN PV */
 // TODO: Define any input variables
-static uint8_t patterns[] = {10101010, 01010101, 11001100, 00110011, 11110000, 00001111};
-
-
+static uint8_t patterns[] = {
+    0b10101010,  // 10101010
+    0b01010101,  // 01010101
+    0b11001100,  // 11001100
+    0b00110011,  // 00110011
+    0b11110000,  // 11110000
+    0b00001111   // 00001111
+};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -108,14 +114,23 @@ int main(void)
   // TODO: Start timer TIM16
   HAL_TIM_Base_Start_IT(&htim16);
 
-
   // TODO: Write all "patterns" to EEPROM using SPI
+  uint16_t baseAddress = 0x0000;  // Starting EEPROM address
+  for (uint8_t i = 0; i < sizeof(patterns) / sizeof(patterns[0]); i++) {
+         write_to_address(baseAddress + i, patterns[i]);
 
+         // Add a delay between write operations if needed
+         // delay(some_delay_value);
+  }
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  // Set initial delay mode
+  uint32_t currentDelay = 1000;  // Initial 1-second delay
+  htim16.Instance->ARR = currentDelay - 1;  // Set TIM16 ARR value
+
   while (1)
   {
     /* USER CODE END WHILE */
@@ -123,6 +138,22 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
 	// TODO: Check button PA0; if pressed, change timer delay
+  if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) {
+	   // Switch between 1-second and half-second delays
+	   if (currentDelay == 1000) {
+	       currentDelay = 500;  // Half-second delay
+	   } else {
+	     currentDelay = 1000; // 1-second delay
+	    }
+
+	  // Update TIM16 ARR value to change the delay
+	  htim16.Instance->ARR = currentDelay - 1;
+
+	 // Wait for the button to be released to avoid rapid changes
+	  while (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) {
+     // Wait until the button is released
+	   }
+    }
 
   }
   /* USER CODE END 3 */
@@ -431,7 +462,26 @@ void TIM16_IRQHandler(void)
 	HAL_TIM_IRQHandler(&htim16);
 
 	// TODO: Change to next LED pattern; output 0x01 if the read SPI data is incorrect
+	// Read the next binary value from EEPROM
+	    uint8_t readValue = read_from_address(patternIndex);
 
+	    // Compare the read value with the expected pattern
+	    if (readValue != patterns[patternIndex]) {
+	        readValue = 0x01;  // Set to 0x01 if the read SPI data is incorrect
+	    }
+
+	    // Display the read value on LEDs
+	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, (readValue & 0x01) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, (readValue & 0x02) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, (readValue & 0x04) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, (readValue & 0x08) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, (readValue & 0x10) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, (readValue & 0x20) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, (readValue & 0x40) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, (readValue & 0x80) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+
+	    // Cycle to the next binary value
+	    patternIndex = (patternIndex + 1) % (sizeof(patterns) / sizeof(patterns[0]));
 }
 
 /* USER CODE END 4 */
