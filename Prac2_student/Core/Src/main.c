@@ -115,7 +115,7 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim16);
 
   // TODO: Write all "patterns" to EEPROM using SPI
-  uint16_t baseAddress = 0x0000;  // Starting EEPROM address
+  uint16_t baseAddress = 0x0000;  // Start of EEPROM address
   for (uint8_t i = 0; i < sizeof(patterns) / sizeof(patterns[0]); i++) {
          write_to_address(baseAddress + i, patterns[i]);
 
@@ -144,12 +144,13 @@ int main(void)
 	     currentDelay = 1000; // 1-second delay
 	    }
 
-	  // Update TIM16 ARR value to change the delay
+	  // Update TIM16 ARR to change the delay
 	  htim16.Instance->ARR = currentDelay - 1;
 
-	 // Wait for the button to be released to avoid rapid changes
+
 	  while (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) {
-     // Wait until the button is released
+     // Waiting for button to be realesed
+     // Want to avoid rapid changes or multi-pressing button
 	   }
     }
 
@@ -460,15 +461,15 @@ void TIM16_IRQHandler(void)
 	HAL_TIM_IRQHandler(&htim16);
 
 	// TODO: Change to next LED pattern; output 0x01 if the read SPI data is incorrect
-	// Read the next binary value from EEPROM
+	// Read next binary value from EEPROM
 	    uint8_t readValue = read_from_address(patternIndex);
 
-	    // Compare the read value with the expected pattern
+	    // Compare read value with the expected pattern
 	    if (readValue != patterns[patternIndex]) {
-	        readValue = 0x01;  // Set to 0x01 if the read SPI data is incorrect
+	        readValue = 0x01;  // Set to 0x01 if the read SPI data is not correct
 	    }
 
-	    // Display the read value on LEDs
+	    // Display read value on LEDs
 	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, (readValue & 0x01) ? GPIO_PIN_SET : GPIO_PIN_RESET);
 	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, (readValue & 0x02) ? GPIO_PIN_SET : GPIO_PIN_RESET);
 	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, (readValue & 0x04) ? GPIO_PIN_SET : GPIO_PIN_RESET);
@@ -478,7 +479,7 @@ void TIM16_IRQHandler(void)
 	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, (readValue & 0x40) ? GPIO_PIN_SET : GPIO_PIN_RESET);
 	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, (readValue & 0x80) ? GPIO_PIN_SET : GPIO_PIN_RESET);
 
-	    // Cycle to the next binary value
+	    // Cycle to next binary value
 	    patternIndex = (patternIndex + 1) % (sizeof(patterns) / sizeof(patterns[0]));
 }
 
