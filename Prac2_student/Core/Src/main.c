@@ -119,8 +119,6 @@ int main(void)
   for (uint8_t i = 0; i < sizeof(patterns) / sizeof(patterns[0]); i++) {
          write_to_address(baseAddress + i, patterns[i]);
 
-         // Add a delay between write operations if needed
-         // delay(some_delay_value);
   }
 
   /* USER CODE END 2 */
