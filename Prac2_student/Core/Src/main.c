@@ -470,8 +470,7 @@ void TIM16_IRQHandler(void)
 	        readValue = 0x01;  // Set to 0x01 if the read SPI data is incorrect
 	    }
 
-	    // Display the read value on LEDs (modify this for your LED configuration)
-	    // For example, if GPIO_PIN_0 represents the first LED:
+	    // Display the read value on LEDs
 	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, (readValue & 0x01) ? GPIO_PIN_SET : GPIO_PIN_RESET);
 	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, (readValue & 0x02) ? GPIO_PIN_SET : GPIO_PIN_RESET);
 	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, (readValue & 0x04) ? GPIO_PIN_SET : GPIO_PIN_RESET);
